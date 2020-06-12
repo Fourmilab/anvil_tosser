@@ -1,0 +1,57 @@
+
+                        Fourmilab Anvil
+                        Development Log
+
+2019 October 19
+
+Started development in:
+    ~/w/SecondLife/Rocket/Anvil_models/anvil_3
+from:
+    https://www.blendswap.com/blend/20662
+which is a Blender model developed by Alan Shukan:
+    https://www.blendswap.com/profile/278192
+and used under a Creative Commons CC-BY license.
+
+Deleted baseplane and camera objects from model.  Saved as:
+    Fourmilab_anvil_1.blend
+
+Exported full resolution model:
+    Fourmilab_anvil_1.dae
+
+Created low resolution model:
+    Choose Properties Editor.
+    From Properties Editor, choose wrench icon.
+    Choose Decimate modifier.
+    Choose Collapse (Edge collapsing).
+    Move ratio slider to around 0.3 detail.
+    Click Apply.  If you detest the results, use ^Z to undo.
+This modifies the mesh in place.  Save As the decimated mesh as
+a .blend file, Fourmilab_anvil_1_LOW.blend.
+
+Export the model as:
+    Fourmilab_anvil_1_LOW.dae
+
+Upload with:
+    Name:   Fourmilab anvil 3b
+
+    Upload options:
+        Scale:  0.1
+
+    Level of detail:
+        High:   Load from file Fourmilab_anvil_1.dae
+        Medium: Use LoD above
+        Low:    Load from file Fourmilab_anvil_1_LOW.dae
+        Lowest: Generate Triangle Limit 48
+
+    Physics model: Lowest
+This results in a land impact of 1.2, which it appears rounds
+down to 1 when you actually rez the resulting object.
+
+Adjusted colour to dark grey and set shininess to Low.
+
+This is the generic anvil shape.  It will be extended with a
+script and additional contents for various applications.
+
+Set the texture to:
+    Library/Textures/Misc Textures/Gray Metal Scratched
+

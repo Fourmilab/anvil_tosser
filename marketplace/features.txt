@@ -1,0 +1,9 @@
+Anvil tossing game for one or more players
+
+Target marks hits and keeps score
+
+Anvils can be thrown at anything; temporary impact markers displayed
+
+Anvils are physical objects affected by gravity and wind
+
+Requires land and ability for players to rez objects

@@ -1,0 +1,29 @@
+
+                    Fourmilab Impact Marker
+                       Development Log
+
+2019 October 21
+
+Set the texture to Full Bright so it is clearly visible
+regardless of the angle of illumination.
+
+Deleted a lot of unnecessary complexity in the script.  Since
+this is an object rezzed by a projectile on impact, there is no
+need for the machinery for user commands via local chat, as they
+would only affect the ephemeral instance which will soon delete
+itself.  If we wish any external configuration, it will have to
+be passed in via the start parameter, which is presently only
+used to convey the time to live.
+
+Upon further (*ahem*) reflection, I decided to make the impact
+marker, which had previously only had the star on one side and
+was transparent on the other, double-sided.  This avoids the
+confusion when you're moving around and the markers disappear
+when seen from the back.  Note that the texture must be rotated
+180 degrees on the reverse to line up with the obverse.
+
+2019 October 24
+
+Added logic to obtain the colour of the marker and its time to
+live from the start_param in on_rez().  This allows the
+projectile to pass along this information from the launcher.

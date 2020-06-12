@@ -1,0 +1,248 @@
+                    Fourmilab Anvil Tosser and Target
+
+                              User Guide
+
+The Fourmilab Anvil Tosser is a general purpose projectile thrower
+which can be used just to blow off steam or in a variety of games,
+either single-player or competitive.  Included is a wearable Anvil
+Tosser shaped like an anvil which, when aimed with a mouselook view and
+clicked, throws a physical anvil in the direction of the mouselook
+cursor.  The anvils thrown are physical objects which respond to
+gravity and (to a tiny extent—they're anvils!) wind, and exert force on
+physical objects they hit.  When an anvil hits another object or the
+ground, a star-shaped target marker is placed at the point of impact so
+the thrower can see where it hit.  If multiple people in the region are
+throwing anvils, each (up to 10) is assigned a unique impact marker
+colour.  Impact markers last for 30 seconds after which they are
+automatically deleted.
+
+Included with the Anvil Tosser are a target and optional target stand.
+When an anvil hits the target, its distance from the bull's eye is used
+to calculate a score from 1 to 10.  A “target hit” marker is placed at
+the point of impact, with the same colour assigned to the player for
+impact markers placed elsewhere.  The target maintains scores for all
+players who have hit it in the last five minutes and displays them in a
+floating text “leader board” above the target.  In addition, hits on
+the target, scores, and range are reported back to the anvil tosser,
+and displayed on floating text above it.  Like impact markers, target
+hit markers are automatically deleted after 30 seconds.
+
+Land Impact and Permissions
+
+In order to use the anvil thrower and target, you must have access to
+land (either your own land, land owned by somebody who allows you to
+create objects there [perhaps temporarily], or a public sandbox which
+allows object creation and scripts).  The process of throwing anvils,
+placing impact markers, and placing hit markers on the target all
+create new objects, which require permission (for the person wearing
+the thrower for anvils and impact markers, and for the owner of the
+target for target hit markers).  Anvils thrown, impact markers, and
+target hit markers each have a land impact of 1, but all are temporary
+objects which are deleted on impact or after a timed delay.  Hence,
+they do not permanently count against the land capacity of the property
+where they are created.  The target has a land impact of 1 and the
+optional stand (which is purely decorative) has a land impact of 5.
+Anvils are automatically deleted if they go “off-world” or fail to hit
+anything within 15 seconds.
+
+Throwing Anvils
+
+To throw anvils, simply select the Fourmilab Anvil Tosser in your
+inventory and choose “Add”, which will attach it to your avatar's right
+hand.  You can now go into “mouselook” mode in your viewer, use the
+mouse and/or arrow keys to move the aiming cursor where you like, and
+click the mouse button to throw an anvil.  (Details of using mouselook
+mode may differ among viewers.)  The anvil is launched in the direction
+of the aiming cursor, but as it is affected by gravity (and to a small
+extent) by any wind, it will follow a parabolic trajectory.  If you're
+throwing the anvil a long distance, you'll have to aim high and “loft”
+its trajectory in order to hit your intended target.
+
+Objects (other than the Fourmilab Target, described below) which you
+hit, including the ground, are marked with a star-shaped temporary
+impact marker to show where you hit.  These are automatically deleted
+after 30 seconds.  If more than one person in the vicinity is using an
+Anvil Tosser, a different colour will be used for the impact markers
+for each individual (up to 10).  If you throw an anvil off the edge of
+the world, it will automatically be deleted, as will anvils that do not
+hit anything within 15 seconds after being thrown.
+
+In areas which permit pushing of avatars, an anvil's hitting an avatar
+will push it in its direction of travel and no impact marker will be
+placed.  In areas where pushing is not permitted, hitting an avatar
+will be treated identically to an impact on any other non-target
+object, placing an impact marker.
+
+The Anvil Tosser and its projectiles and impact markers have no
+settings or controls.  If you wish to change something, for example the
+speed with which anvils are thrown or the extent they are affected by
+gravity (“buoyancy” in Second Life terminology), you can edit the
+scripts for the objects, which are supplied with full permissions,
+allowing you to modify them as you wish.
+
+If you board and leave a vehicle which takes the mouselook control and
+then releases it, or add and remove another attachment that does the
+same, the anvil tosser will lose the control and clicking will not toss
+an anvil.  If this happens, just touch the anvil to restore the
+control.
+
+Throwing Anvils at Physical Objects
+
+Because the anvils are physical objects, they exert force on other
+physical objects with which they collide.  You can, for example, create
+a physical sphere to serve as a ball, then throw anvils at it to make
+it move as you wish.  A challenging game for either two individuals or
+teams is “anvil polo”, where the players fly and compete to get the
+ball across the opponent's goal line by throwing anvils at it.
+
+Using the Target
+
+The Fourmilab Target co-operates with the Anvil Tosser to provide
+scoring and permit competitive games.  You can set up the target or
+multiple targets in any locations and orientations you wish.  The
+target is accompanied by an optional stand textured to look like wooden
+poles.  The stand is purely decorative; the target will work with or
+without it.  For convenience, a combined “Fourmilab Target and Stand”
+object is included containing both the target and stand.  You can place
+and adjust its orientation by performing a group selection of both
+target and stand and adjusting as you wish with the “Edit” command in
+the viewer.
+
+Once you've set up the target, you can throw anvils at it (both sides
+are active) and, when you hit the target, the impact location is marked
+with a hemispherical hit marker with the same colour as the impact
+markers placed when anvils hit other objects.  A score from 1 to 10 is
+computed based on how close you came to the bull's eye.  The target
+displays a floating text “leader board” which shows the number of hits
+by all avatars who have hit the target in the last five minutes, along
+with their total scores and the colours of their hit markers.  Hit
+markers are automatically deleted after 30 seconds.  The target
+communicates hits back to the avatar who threw the anvil so that the
+Anvil Tosser they're wearing can display the number of throws, hits,
+and the total score.
+
+The target will also record impacts from other objects, so you may use
+it in games with other projectile launchers.  It will maintain the
+leader board, but all hits will be marked with an orange marker and hit
+numbers and scores will not be communicated back to the launcher.
+
+The target accepts commands sent via local chat, listening by default
+on channel 1308 (by legend, the year after William Tell's
+marksmanship).  The following commands may be sent by any user who has
+hit the target within the last five minutes.
+
+    Clear
+        The user's hit count and score are reset to zero, and the user
+        is removed from the leader board.  You can also clear the
+        scores shown by the target and in the anvil tosser's floating
+        text by touching the anvil tosser while you're wearing it.
+
+    Help
+        Give the requester a notecard explaining the target commands.
+
+    Scores
+        The scores from the leader board are sent back to the user on
+        local chat.  This is handy when users are throwing at the
+        target from a distance sufficiently far that the floating text
+        is not visible to them.
+
+The following commands may be used only by the owner of the target.
+
+    Channel n
+        The target will listen for commands on local chat channel n.
+
+    Clear all
+        All hits and scores will be reset to zero and the leader board
+        removed.
+
+    Restart
+        Reset the script.  Everything, including the chat channel
+        number on which the target listens, will be reset to their
+        default values.  If you manually move, scale, or rotate the
+        target with the viewer's “Edit” facility, it's wise to Restart
+        the script before using it.
+
+    Set
+        Set a variety of variables affecting the behaviour of the target.
+
+            Set bang on/off
+                Controls whether the target makes the bang sound when hit.
+
+            Set flash on/off
+                Controls whether the target shows an explosion when hit.
+
+            Set legend on/off
+                Shows or hides the leader board.  When hidden, a player
+                may still see the scores by sending the Scores command.
+
+            Set trace on/off
+                Enable debugging output (sent to the owner on local chat)
+                intended for developers working on the script.
+
+    Status
+        Display a variety of status information, including the target's
+        position, the list of known users, the list of those who have
+        hit the target in the last five minutes, and the above settings.
+
+Permissions and the Development Kit
+
+Fourmilab Anvil Tosser and Target are delivered with "full
+permissions".  Every part of the object, including the scripts, may be
+copied, modified, and transferred without any restrictions whatsoever.
+If you find a bug and fix it, or add a feature, let me know so I can
+include it for others to use.  The distribution includes a "Development
+Kit" directory, which includes all of the textures used in the models.
+A generic anvil mesh object without any script is included in case
+that's what you need for a build.
+
+The Development Kit directory contains a Logs subdirectory which
+includes the development narratives for the project.  If you wonder,
+"Why does it work that way?" the answer may be there.
+
+Source code for this project is maintained on and available from the
+GitHub repository:
+    https://github.com/Fourmilab/anvil_tosser
+There you will find the definition files for the mesh model of the
+anvil (both full and reduced resolution) in DAE format.
+
+Acknowledgements
+
+    The anvil mesh is based upon a Blender model of an anvil:
+        https://www.blendswap.com/blend/20662
+    developed by Alan Shukan:
+        https://www.blendswap.com/profile/278192
+    and used under a Creative Commons CC-BY license.
+
+    The sound effects are free clips available from:
+        https://www.soundeffectsplus.com/
+    The "whoosh" sound when an anvil is tossed is derived from "Fishing
+    Rod Whoosh 02" (SFX 41498159):
+        https://www.soundeffectsplus.com/product/fishing-rod-whoosh-02/
+    The sound when an anvil hits an object other than the target is
+    derived from "Balloon Explode" (SFX 43561988):
+        https://www.soundeffectsplus.com/product/balloon-explode-01/
+    The sound when an anvil hits the target is extracted from "Cartoon
+    Bomb Explosion 01" (SFX 43132584):
+        https://www.soundeffectsplus.com/product/cartoon-bomb-explosion-01/
+    All of these effects are © Copyright Finnolia Productions Inc. and
+    distributed under the Standard License:
+        https://www.soundeffectsplus.com/content/license/
+    The sound clips were prepared for use in this object with
+    the Audacity sound editor on Linux.
+
+License
+
+This product (software, documents, images, and models) is licensed
+under a Creative Commons Attribution-ShareAlike 4.0 International
+License.
+    http://creativecommons.org/licenses/by-sa/4.0/
+    https://creativecommons.org/licenses/by-sa/4.0/legalcode
+You are free to copy and redistribute this material in any medium or
+format, and to remix, transform, and build upon the material for any
+purpose, including commercially.  You must give credit, provide a link
+to the license, and indicate if changes were made.  If you remix,
+transform, or build upon this material, you must distribute your
+contributions under the same license as the original.
+
+The anvil mesh and sound effects are licensed as described above in the
+Acknowledgements section.

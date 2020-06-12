@@ -1,0 +1,610 @@
+
+                    Fourmilab Anvil Tosser
+                       Development Log
+
+2019 October 20
+
+Began development with generic (no script) mesh anvil, copied into two
+new objects:
+    Fourmilab Anvil Tosser
+    Anvil toss projectile
+
+Imported the scripts from the Great Balls of Fire! prototype launcher
+and projectile, then integrated the logic for impact markers from the
+Rocket anvil bomb into the projectile.
+
+Changed the launch action from a simple drop to a pitch in the
+mouselook direction.
+
+While when dropping the anvil as a bomb it works to have it initially
+be non-physical and then convert to physical in on_rez(), but in order
+to impart a velocity in the llRezObject() object call the object rezzed
+must be physical in the inventory.  I changed the prototype to physical
+(which, of course, makes it interact with terrain) and imported that
+version to the inventory.  Now I can throw it.
+
+2019 October 21
+
+Added the ability to set the relative orientation in which the avatar
+holds the launcher when wearing it.  The holdOrientation vector
+specifies, as Euler angles, the orientation to which the launcher is
+rotated after being worn.
+
+Added a preload of Launch_sound when the launcher is worn.  This avoids
+the delay in playing the sound when the first projectile is thrown.
+
+Changed the placement of impact markers so their Z axis (face of star
+on marker) is rotated to point toward the tosser (captured from the
+position of the anvil when it is rezzed).  This makes them easier to
+see than any fixed orientation.
+
+Another gotcha discovered in testing with another avatar: when you take
+copies of subordinate objects into inventory to be included in the
+contents of parent objects which will rez them, you have to be extra
+careful the item in the inventory of the parent object has Copy
+permission.  Somehow, the process of taking and including the object
+tends to lose this.  If the Copy permission is not preserved, the
+non-owner avatar will be unable to rez the object from the inventory.
+This applies both to the projectile and the impact marker which it, in
+turn, rezzes.
+
+2019 October 22
+
+Adjusted holdOrientation, the rotation of the anvil when it is added to
+an avatar, so the anvil is held upright.
+
+2019 October 24
+
+Added a mechanism by which settings in the anvil tosser can be passed
+down to the projectile and the impact markers it deposits.  When the
+projectile is rezzed, it is passed a start_parameter encoded as a
+decimal number as follows:
+    MMCTT
+where MM is the lifetime of the impact marker in seconds, C is the
+colour index of the impact marker, and TT is the lifetime of the
+projectile if it doesn't impact anything in seconds.
+
+This, in turn, is received by the projectile's on_rez() event and
+parsed into its components.  The TT sets the projectile's time to live,
+while at impact the colour index and impact marker life are passed in
+its start_param as:
+    CMM
+
+The impact marker's on_rez() receives and parses this and sets its
+colour and time to live accordingly.  The projectile and impact marker
+thus require no configuration mechanism as their configuration is
+delivered in the start_param from their parent objects.
+
+Added logic to the Anvil Tosser to automatically assign colours for
+impact markers.  When the object is attached, it sends a query to its
+peers on the colourNegotationChannel, which is defined as -982449710,
+consisting of "COLOURQ".  All Anvil Tossers (and compatible projectile
+launchers) listen on this channnel and respond to COLOURQ queries with
+COLOURU messages on the same channel which specify the colour they're
+using and (in case we need it) the name of their owner.  When an Anvil
+Tosser receives a COLOURU message, it adds the colour index to a bitmap
+called excludedColours, which indicates colours already used by other
+Tossers.  The first time a projectile is launched, myColour() is
+called, which walks through a list of colourPriority (colours to use,
+in descending order of preference) to find the first not in
+excludedColours, selects it, and sends a COLOURU message to notify
+other launchers that colour is now in use.  The selected colour is then
+passed down the rez chain from the tosser to the projectile to the
+impact marker and used to set its colour.
+
+2019 October 25
+
+Added a check to the projectile to see if the name of what we hit
+contains the substring "Target".  If so, we suppress generation of the
+impact marker and sound and visual effects and leave that up to the
+target.
+
+Added the ability for the anvil tosser to pass the buoyancy to the
+projectile via the start_param.  The buoyancy is specified as a single
+digit representing the buoyancy multiplied by 10, with the gimmick that
+9 represents a buoyancy of 1.0, or full effect of gravity.
+
+2019 October 28
+
+The selection of a unique colour in myColour() ran afoul of the curious
+rules of persistence of script variables across events such as taking
+into inventory.  I added code to the on_rez() event handler to clear
+excludedColours and set imColour to -1, indicating we have yet to
+obtain a list of colours used by others and have not yet chosen a
+colour ourselves.
+
+2019 October 29
+
+Added a listener to receive hit reports from targets on channel
+hitChannel (-982449712).  At present, receipt of a hit report simply
+reports to the user by calling reportHit(), which composes a message
+and sends it with llOwnerSay().
+
+2019 October 31
+
+Added support for range reporting and display in conjunction with the
+target.  The anvil projectile now appends the string ", P=<x,y,z>" to
+its name, where the vector gives the location from which it was thrown
+in region co-ordinates.  When the target reports back the range for an
+impact on the hitChannel, the range is shown in the impact report.
+
+2019 December 26
+
+In the anvil projectile, made the comparison of the name of the object
+we impacted an exact test for "Fourmilab Target" rather than a
+substring match.  This will avoid, for example, collisions with the
+"Fourmilab Target Stand" being handled as if they were hits on the
+actual target.
+
+2020 January 8
+
+Further revised the test for the object with which we collided to treat
+"Fourmilab Target and Stand" as a co-operating target. This is the name
+of the combined object we provide for convenience.
+
+2020 January 24
+
+Our trick of appending the P= and CMM= substrings to the name of the
+tossed projectile ran afoul of renaming it "Fourmilab Anvil Toss
+Projectile", which exceeded the maximum length of an object name and
+was truncated, resulting in the tosser's position being parsed as
+<0,0,0> and incorrect calculation of the range.
+
+Revised the code in the Anvil Projectile to place CMM= and P= first in
+the revised name string, pushing any truncation to the end.  This will
+required adjustments to the parsing of these values in the target.
+
+2020 January 25
+
+Renamed the projectile "Anvil Toss Projectile".  Eliminating the
+"Fourmilab" reduces the truncation when the P= and CMM= substrings are
+prefixed to the name.  This, of course, required also changing the name
+of the projectile thrown in the anvil tosser.
+
+We have developed what appears to be a new unreliability where anvil
+projectiles rezzed hit the target or some other object before their
+on_rez() event runs, and thus they have not yet had a chance to set the
+P= and CMM= strings in the name or any of the physical parameters of
+the object.  My guess is that this is related to the delays in script
+execution which were introduced around the first of the year and have
+been the subject of discussion at the Tuesday server meetings in Denby.
+This is a real mess.  What appears to be required is to rez the
+projectile, wait for a message from it which indicates is script is
+running, and then command it to actually launch itself.  This will mean
+that the actual launching of the projectile does not occur until the
+script has had a chance to set its properties and name.  For an example
+of how to communicate between a rezzed object and the parent, see:
+    http://wiki.secondlife.com/wiki/Object_rez
+
+2020 January 26
+
+Added the ability to reset the anvil tosser's score by touching it
+while attached.  The number of shots is reset to zero and a ClearAll
+message is sent to the target (using the channel and target ID reported
+in the most recent "Hit" message, if any) including the owner's ID to
+reset scores on the target.
+
+Modified updateLegend() to display a blank legend if the number of
+shots, hits, and score are all zero.
+
+Problem is with projChannel being set based on colour.  Not set when
+initial message exchange occurs.
+
+2020 January 27
+
+Our pre-creation of the projectile to speed up its launch created the
+possibility that the owner or somebody else might walk into it and,
+creating a collision, detonate it.  I made the projectile a phantom
+object when it is created, and only change it into a non-phantom object
+with physics at the time it is launched.
+
+2020 January 28
+
+One more problem.  If we've instantiated the ready projectile and the
+avatar then teleports to another region, the projectile will be left
+behind in the old region and there will be no ready projectile after
+arrival in the new.  Can we detect the region change, delete the old
+ready projectile, and create a new one after arrival?
+
+We may be able to detect if the ready projectile is in the region with
+llGetObjectDetails().  If this returns a null list, we know it's not in
+the region.
+
+The changed() event has flags for CHANGED_REGION indicating the object
+has changed region and CHANGED_TELEPORT when the avatar to which the
+object is attached has teleported.  When we receive these signals, we
+are already in the new region and may obtain its name with
+llGetRegionName().
+
+Possible approach: every minute, send a heartbeat message to the ready
+projectile.  The ready projectile has its own timer, and if after two
+minutes it hasn't received a heartbeat, it deletes itself.  This gets
+rid of projectiles which are orphaned when the tosser leaves the region
+(or something else happens which doesn't cause an explicit detach
+event).
+
+When the tosser receives a CHANGED_REGION, it clears the presence of a
+ready projectile and creates a new one for use within the new region.
+
+2020 February 1
+
+Decided the ready projectile mechanism was just too cumbersome, flaky,
+and prone to problems to continue with.  Removed all of the code for it
+and replaced it with a simple rez of the projectile in front of the
+avatar that tossed it as non-physical and with zero velocity.  When its
+script gets control and on_rez() runs, it will then mark itself
+physical and call llSetVelocity() to launch itself.  How does it
+determine the velocity vector when it was created with zero velocity?
+Glad you asked: it computes it from its forward axis
+[llRot2Fwd(llGetRot())] and the SPEED setting passed in the CMM
+start_param to on_rez().
+
+This results in a pause between the time the anvil appears and when it
+takes off in the direction it was tossed.  The length of this pause
+depends upon how long it takes for the script to get control, which
+depends upon how busy the region is and other unknowable Linden lore.
+This is a little odd, but it's a lot better than all of the insane
+behaviour we observed with the ready projectile scheme.
+
+2020 June 1
+
+The floating text status message displayed by the Anvil Tosser did not
+handle correct pluralisation of the values for "shots" and "hits".  It
+will now only pluralise the words if the values are not one.
+
+Created local development Git repository in:
+    ~/w/SecondLife/AnvilToss/git
+with:
+    git init
+
+Added and committed the subdirectories and .gitignore, which excludes
+the original (enormous) Blender models for the anvil.  The DAE files
+should be sufficient for builders in Second Life, and the original
+Blender model can be downloaded from Blend Swap by anybody who needs
+it.
+
+Logged on to github.com.
+
+Created a new repository:
+    anvil_tosser
+with access URLs:
+    HTTPS: https://github.com/Fourmilab/anvil_tosser.git
+    SSH:   git@github.com:Fourmilab/anvil_tosser.git
+
+2020 June 2
+
+Initialisation of scripted avatar attachments that request permissions
+from the avatar is another deep, dark rabbit hole which, once you've
+fallen into it, you realise is not the bright cosmopolitan world of
+Unter den Linden, but rather Tiergarten in 1939.  There are a number of
+ways an attachment script can find itself executing
+
+    Rezzed from inventory to land
+        This is rare, but it can happen.  An attachment can be rezzed
+        like any other object.  In this case, it will receive on_rez(),
+        but, as far as I can determine, not state_entry().  This makes
+        no sense, but that's what I see.
+
+    Attached from inventory to avatar
+        This is the most common case.  We see on_rez(), followed by an
+        attach() to the avatar.  In this case, requesting mouselook
+        controls from on_rez() or attach() seems to work correctly.
+
+    Script reset while attached
+        If the script is reset, either by editing and changing it and
+        then saving it, or by an explicit reset from the Edit dialogue,
+        we see a state_entry() but no on_rez().  We do not receive an
+        attach() event since we're already attached.  If we detect
+        we're already attached and request mouselook permissions from
+        state_entry() it seems to work.
+
+    Viewer restart while attached
+        This is real can of worms.  If an avatar is wearing an
+        attachment and quits and restarts the viewer, the attachment
+        will see on_rez() and attach() events precisely as if the
+        attachment had been newly attached.  But, if mouselook control
+        permission is requested from either of these two events, it
+        will be granted and the request for control processed without
+        error, but silently ignored.  Delaying on a timer before
+        requesting permissions doesn't seem to help.  The only thing
+        I've found that works is polling until we find the avatar to
+        have gone into mouselook [AGENT_MOUSELOOK in llGetAgentInfo()]
+        and then requesting permissions.  Compounding the ugliness of
+        this, I've found no way to distinguish this situation from the
+        normal case of an attachment from inventory, so we have to go
+        through the silly poll every single time we're newly attached.
+        But this is the only way I've found to preserve mouselook
+        control for an attachment across a viewer restart,  Welcome to
+        the Garden of the Beasts.
+
+We may be able to distinguish a viewer restart from a new attachment by
+the order of events:
+    New attachment
+        on_rez()
+        attach()
+    Viewer restart
+        attach()
+        on_rez()
+Whether this holds true for all viewers and is not dependent upon
+random timing is anybody's guess.
+
+After further reflexion, I settled on the following scheme to handle
+permissions at initialisation.  Both on_rez() and state_entry() call
+initTosser(), which detects whether we're already attached to an
+avatar.  If so, it requests permissions unconditionally.  In addition,
+the attach() event also requests permissions and, just in case the call
+is futile in the case of a viewer restart, also starts a one second
+timer which polls whether we're in mouselook mode.  Upon the first
+entry to mouselook mode after restart, we once again request
+permissions.  This is baroque, but it seems to work in all of the
+possible cases and I can't think of any simplification which would be
+less complex and not count on something like the orders of events being
+received which is usually unwise in Second Life.
+
+Added logic to switch from the "hold_R_handgun" animation to
+"aim_R_handgun" when the user launches, then return to hold after the
+armed timer expires.
+
+Added a trace variable which enables chatty output to the owner on
+various events for debugging.  To enable trace, you have to edit the
+script and set trace = TRUE at the top.  I don't think adding a chat
+command handler is justified for only this.
+
+Hits on the target stand did not indicate impact or place impact
+markers because the test for having hit the target checked the object's
+name for beginning with "Fourmilab Target".  This was a tacky attempt
+to allow the user to give different names to multiple targets and still
+have them recognised as targets.  Unfortunately, "Fourmilab Target
+Stand" passed this test, was deemed a target, and suppressed the impact
+theatrics.  I rewrote the collision_start() handler to use
+llGetDetectedKey() instead of llDetectedName(), then obtain the
+object's description with llGetObjectDetails().  The description must
+be an exact match for "Fourmilab Target" for the impact to be judged as
+a target hit.  This gives the user complete freedom to name targets
+anything they wish as long as the description remains intact.
+
+2020 June 3
+
+Due to imprecision in Second Life's physics engine's detection of
+collisions (because objects are modeled by bounding boxes, not their
+actual model shape), when an anvil strikes the target on its stand at a
+location aligned with the stand, it is possible to receive a
+collision_start() event reporting two collisions: the target and the
+stand.  The original handler for this event looked only at the first
+collision, and if it (randomly) happened to be the stand, the collision
+would be treated as a non-target impact, making the pop sound and
+placing an impact marker.  I revised the code to scan the entire list
+of collisions and test whether any is with a target.  If so, the event
+is deemed a target collision and handled accordingly.
+
+2020 June 5
+
+Implemented pushing avatars when an anvil collides with them.  In the
+original case, collision with an avatar was treated precisely like
+hitting any other object: the flash bang effect was played and an
+impact marker placed.  Even though avatars are physical and can move
+physical objects they collide with, collision of an anvil with an
+avatar has little or no effect upon it.  (It does appear to move a tiny
+bit, but that's it.)  The llPushObject() function allows imparting an
+impulse to an object.  In the Anvil Projectile script, I added a test
+in the collision_start() event to detect if a collision is with an
+avatar (through the cheesy method of requesting the
+OBJECT_CREATION_TIME of what we hit from llGetObjectDetails(), which
+returns a timestamp for normal objects but the null string for avatars:
+I couldn't find anything more elegant) and passing this flag and the
+avatar's key to the impact() function, which computes the incoming
+projectile's direction vector as the difference between the position of
+the impact and the location from which it was thrown, which we saved in
+on_rez(), then pushes the object with a value set in the variable
+pushImpulse, which is compiled into the script.  In this case no impact
+marker is placed, but we still play the sound and show the particle
+effect.  If pushImpulse is set to zero, collisions with an avatar are
+treated like any other non-target object, as before.
+
+2020 June 6
+
+Permissions with regard to pushing are somewhat complicated.  First of
+all, there is a parcel setting of "No Pushing", which can be forced by
+such a setting on the region within which the parcel exists.  If the
+region is set Restrict Pushing, parcel owners cannot enable pushing.
+This is the case, for example, in Bellisseria.  No Pushing, however,
+does not restrict the owner of the parcel, who can push others, but
+cannot be pushed by them.  (There are even more complicated rules for
+parcels owned by groups and members of those groups.)  You can test
+whether pushing is enabled at a given location within the current
+region with llGetParcelFlags(), which will return a value with the
+PARCEL_FLAG_RESTRICT_PUSHOBJECT bit set if No Pushing is in effect. If
+this is the case, I think you can then call llOverMyLand(llGetOwner())
+to test whether the projectile's owner is over their own land
+(including all of the rules for groups).
+
+2020 June 7
+
+After some research and cogitation on the matter, I decided not to try
+detecting when permissions do not permit the user to rez an anvil.  In
+that case, no harm is done, Second Life simply issues its own warning,
+and the Anvil Tosser script goes on running.  There are so many
+possible reasons permission may be denied based upon region and parcel
+settings, the user's identity and group membership, etc. that any test
+I came up with might yield false positives or negatives in certain
+arcane situations.  Since Second Life is the ultimate arbiter, I think
+it makes sense to defer to it in the matter.
+
+Our clever trick of clearing a user's score on the target by touching
+the anvil tosser failed because Anvil Tosser was sending the obsolete
+"ClearFor" command to the target instead of the current "Clear for"
+which was introduced when the target was adapted for use with the
+Rocket.  I changed the command and now it works.
+
+Added a line to the instructions whispered when the tosser is attached
+about touching the anvil to clear the score.
+
+Re-tested interaction of the target with throwers who are not their
+owner.  Everything appears to be in order.  Also tested non-owner
+interaction with the target via the touch menu: also OK.
+
+2020 June 9
+
+Added a trace mechanism to Anvil Projectile which is compatible with
+lslconf.pl.  All trace code is generated only if configured with:
+    TRACE = 1
+in the .lslc file.  If trace code is generated, trace will be diplayed
+only if the variable "trace" is TRUE within the script. There is no way
+to turn this on or off other than editing the script.  The trace output
+shows detail of the handling of impacts and is always sent to the
+projectile's owner with llOwnerSay().
+
+Investigated the double impacts from one projectile that we were
+seeing.  The most common case for this turns out to be receiving both a
+land_collision_start() and a collision_start() for a hit on an object
+near ground level.  Since these are independent events, it's difficult
+to handle them together.  What I ended up doing is the following.  If
+we have received a collision_start() and, before dying, we ignore
+subsequent land_collision_start() events which arrive.  If we've seen
+and processed a land_collision_start() and a collision_start() shows
+up, we test what we collided with.  If it's a target or an avatar, we
+process it (since those impacts have effects beyond those of a land
+collision, and we wish to preserve them).
+
+Completely revised how Anvil Projectile places its impact markers.
+Previously, they were placed simply by where the projectile happened to
+be when we received the collision event.  (The event itself only tells
+you the centre of mass of the object with which you collided via
+llDetectedPos(), which is useless for collisions as it may be far from
+where you hit.)  This could be quite imprecise, and often resulted in
+markers appearing behind or within the objects they hit, especially for
+nearby hits.
+
+First of all, I rewrote how we handle multiple collisions reported in a
+single collision_start() event.  This is rare, but it can and does
+happen.  We now examine all of the reported collisions and, if any is
+with a target, choose it.  If none are with a target and one is with an
+avatar, choose the last one we saw.  Otherwise choose the last
+collision with another object that was reported. These rules determine
+which of multiple collisions reported that we'll process.
+
+That collision is passed to impact(), along with the key of what we
+collided with and flags indicating whether it's a target or avatar.
+The impact() function freezes the projectile in place and makes it
+phantom, which will keep it from flying further, bouncing around, or
+making further collisions.  If it's a collision with a target or
+avatar, we proceed as before, but if it's a land or other object
+collision where we wish to place an impact marker, we now perform a ray
+cast from location from where the projectile was launched to a point at
+110% of the distance from there to where it is now along that vector
+and see what it intersects.  Then we walk through the intersections
+looking for one whose key matches what llDetectedKey() said we hit.  If
+we find it, we use that ray intersection as the location of the impact
+marker.  This appears to be much more precise than the projectile's
+position and it even works for land collisions (which report a NULL_KEY
+for the object).  If the ray cast fails for any reason (it can, for
+example, punt if the region is too busy) or doesn't find anything, we
+just use the projectile's position for the impact marker as before.
+
+To avoid impact markers' being "swallowed" by the objects they hit, I
+added code to offset them 5 cm (fixed) along the vector from the impact
+point to the launch point.  I'll observe how well this setting works at
+different distances and circumstances and adjust accordingly. Note that
+it is an adjustment local to the marker and what the projectile
+impacted and not scaled with the distance from launch.
+
+2020 June 10
+
+To avoid having impact markers be "swallowed" by terrain or an
+irregularly-shaped object they hit, I added code to impact() in
+Anvil Toss Projectile which, before placing the impact marker,
+casts a ray downward from the previously-determined point of
+impact to a distance of 0.6 metres below it.  If it hits something
+(often terrain, either real or a skybox floor), it shifts the
+marker upward to avoid the detected obstacle.
+
+2020 June 11
+
+Replaced the cheesy code that computed the orientation of impact
+markers (any time you wake up with the intent of using llRotBetween()
+for anything, roll over and get some more sleep until you have a better
+idea) with code developed for the Orientation Cube which composes
+rotations around the orthogonal local axes to aim the face of the
+marker back at the point of launch with the point of the star (+Y local
+axis) up (region +Z).  This provides consistent rotation of the markers
+as seen by the person who tossed the anvils and allows offsetting their
+region Z by a consistent amount (which works out to 0.07672 metres due
+to the geometry of a five-pointed star) to avoid poking into the
+terrain or detected obstacle from the ray cast described above.
+
+Added conditional configuration code to Anvil Tosser to work with
+lslconf.pl and make generation of the code which handles the compiled
+in trace variable conditional on TRACE.  In the Git anvil/scripts
+directory, created a Makefile to build TRACE=0 and TRACE=1 versions in
+subdirectories called trace and notrace which are created automatically
+if not present and excluded with .gitignore.  The conditional code had
+already been included in Anvil Projectile and was previously managed
+manually.
+
+Well, another day, another screwball discovery: if an avatar is flying
+and uses mouselook mode to look close to straight down, then launches
+an anvil, you can get an immediate collision with the avatar itself!
+This is presumably because the physics engine is looking at the
+cylindrical bounding shape of the avatar and projecting a ray from the
+avatar's head which hits that shape (even though the user in mouselook
+doesn't see it).  I added code Anvil Projectile's collision_start() to
+detect and ignore these self collisions (detected by testing
+llDetectedKey() against llGetOwner(), since the thrower of the anvil
+will necessarily be its owner).  Now you can throw straight down
+without the anvil blowing up in your face.
+
+Fixed a backward assignment statement in the impact() function in Anvil
+Projectile which caused the ray cast looking for obstructions beneath
+an impact marker not to find the uppermost.  This was responsible for
+the mis-placement of impact markers in testing at Riff Airport.  Now it
+seems to be behaving as intended.
+
+2020 June 12
+
+Performed an audit of the scripts in the development objects on 
+Fourmilab Island, the objects in the Marketplace listing, and the 
+source code in the Git repository to verify that they are identical. 
+The scripts are cited below by their path names in the repository.
+    anvil/scripts/notrace/anviltosser.lsl
+    anvil/scripts/notrace/notrace/anvilprojectile.lsl
+    impact_marker/scripts/impact_marker.lsl
+    target/scripts/target.lsl
+    target/scripts/targetmarker.lsl
+
+Audited the notecard documents, verifying that the copies in the Git 
+repository, those included within objects, and those in the Marketplace 
+listing are identical,
+    notecards/anvil_tosser_help.txt
+    notecards/target_help.txt
+Discovered the copy of the target help file within the target was out 
+of date and remedied the problem.  Updated the Target and Target and 
+Stand in the Marketplace to the corrected versions.
+
+Verified the following logs considered complete are identical in the 
+Inventory development folder, Marketplace, and Git repository.
+    anvil/logs/anvil.log
+    target/logs/target.log
+    impact_marker/logs/impact_marker.log
+I will defer the anvil/logs/anviltosser.log (this document) until we're 
+ready to ship.
+
+If a user wearing the tosser boarded a vehicle or added an attachment 
+which took the mouselook control and subsequently released it, we would 
+lose the control, even though llGetPermissions() reported we still have 
+PERMISSION_TAKE_CONTROLS.  Previously, the only way to restore the 
+control was to detach and re-attach the tosser.  I added code to the 
+touch() event to re-take the mouselook control and, just in case, also 
+re-establish the hold_R_handgun animation.  Touching the anvil also, of 
+course, clears the scores, but so would detaching and re-attaching it 
+anyway.  I tried to see if I could otherwise detect losing the control, 
+but couldn't find a way.  Sitting on a vehicle and/or leaving it 
+generates any changed() event we can see.
+
+Pushed the production directory to the repository with:
+    git remote add origin git@github.com:Fourmilab/anvil_tosser.git
+    git push -u origin master
+
+Confirmed that my local "git sync" command works with the remote
+repository.
+
+Released version 1.0.

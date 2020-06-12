@@ -1,0 +1,90 @@
+                           Fourmilab Target
+
+                              User Guide
+
+The Fourmilab Target can be used with any kind of projectile.  It
+co-operates with the Anvil Tosser to provide scoring and permit
+competitions.  You can set up the target or multiple targets in any
+locations and orientations you wish.
+
+Once you've set up the target, you can toss anvils toward it and, when
+you hit the target, the impact location is marked with a hemispherical
+hit marker with a different colour for each person throwing anvils.  A
+score from 1 to 10 is computed based on how close you hit to the bull's
+eye.  The target displays a floating text “leader board” which shows
+the number of hits by all avatars who have hit the target in the last
+five minutes, along with their total scores and the colour of their hit
+markers.  Hit markers are automatically deleted after 30 seconds.  The
+target communicates hits back to the Anvil Tosser so that it can
+display the number of throws, hits, and the total score from hits in
+floating text.
+
+The target will also record impacts from other objects, so you may use
+it in games with other projectile launchers.  It will maintain the
+leader board, but scores will not be communicated back to the launcher.
+
+The target accepts commands sent via local chat, listening by default
+on channel 1308 (by legend, the year after William Tell's
+marksmanship). The following commands may be sent by any user who has
+hit the target within the last five minutes.
+
+    Clear
+        The user's hit count and score are reset to zero, and the user
+        is removed from the leader board.  You can also clear the
+        scores shown by the target and in the anvil tosser's floating
+        text by touching the anvil tosser while you're wearing it.
+
+    Help
+        Give this notecard to the requester.
+
+    Scores
+        The scores from the leader board are sent back to the user on
+        local chat.  This is handy when users are aiming at the target
+        from a distance sufficiently far that the floating text is not
+        visible to them.
+
+The following commands may be used only by the owner of the target.
+
+    Channel n
+        The target will listen for commands on local chat channel n. If
+        you're setting up multiple targets, it's best to choose a
+        different channel for each to avoid confusion
+
+    Clear all
+        All hits and scores will be reset to zero and the leader board
+        removed.
+
+    Restart
+        Reset the script.  Everything, including the chat channel
+        number on which the target listens, will be reset to their
+        default values.  If you manually move, scale, or rotate the
+        target with the viewer's “Edit” facility, it's wise to Restart
+        the script before using it.
+
+    Set
+        Set a variety of variables affecting the behaviour of the target.
+
+            Set bang on/off
+                Controls whether the target makes the bang sound when hit.
+
+            Set flash on/off
+                Controls whether the target shows an explosion when hit.
+
+            Set legend on/off
+                Shows or hides the leader board.  When hidden, a player
+                may still see the scores by sending the Scores command.
+
+            Set trace on/off
+                Enable debugging output (sent to the owner on local chat)
+                intended for developers working on the script.
+
+    Status
+        Display a variety of status information, including the target's
+        position, the list of known users, the list of those who have
+        hit the target in the last five minutes, and the above settings.
+
+The Target has a menu which may be displayed by touching the target at
+any point.  The menu allows submitting many of the chat commands
+described above.  If the target is touched by a user other than its
+owner, only the commands available to non-owners will be shown in the
+menu.

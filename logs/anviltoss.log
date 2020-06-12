@@ -1,0 +1,64 @@
+
+                    Fourmilab Anvil Toss
+
+                       Development Log
+
+2019 December 25
+
+This is an overall log for the Anvil Toss project, created at
+the time the Git repository was created.  The structure of the
+project, and hence this repository, is more complex than a
+typical item created for the Second Life marketplace because
+many of the components developed herein will be re-used in other
+projects under development.  The target and its markers, the
+impact markers for off-target collisions, and the projectile
+logic are completely general-purpose and may be used with other
+models.
+
+The repository consists of a subdirectories for each component
+of the project, as follows:
+
+    anvil
+        Includes the generic anvil mesh model, the wearable
+        anvil tosser, and the actual anvil projectile which
+        it throws.  Subdirectories are:
+            logs        Development logs
+            meshes      DAE files for the anvil (regular
+                        low resolution)
+            meshes/blender  Blender models for the above
+            scripts     LSL scripts for the anvil tosser
+                        and projectile
+
+    impact_marker
+        The star marker which is placed upon impacts of the
+        anvil projectile anywhere except on the target.
+        Subdirectories are:
+            logs        Development log
+            scripts     LSL script
+            textures    Texture for the five pointed star
+                        with transparent background
+
+    target
+        The target and stand.  The stand is non-scripted and
+        need not be used with the target (if, for example, you're
+        placing it flat on the ground as a bombing target or
+        on the wall of a building).  The target markers, which
+        are placed at the point of impact, are included.
+            logs        Development log
+            scripts     LSL scripts for the target and markers
+            textures    Texture for the target bullseye and rings
+            textures/gimp  GIMP master files for the above
+
+    marketplace
+        Files for the marketplace listing of the composite
+        product.
+
+Because the anvil tosser, anvil projectile, impact markers,
+target, and target markers all interact with one another and
+communicate by passing messages among their scripts, it isn't
+always obvious which development log describes a given
+function.  It's best to read all of the logs before digging into
+the individual scripts to add features or modify their
+behaviour.
+
+

@@ -1,0 +1,28 @@
+The Fourmilab Anvil Tosser is a general purpose projectile thrower which can be used just to blow off steam or in a variety of games, either single-player or competitive.  Included is a wearable Anvil Tosser shaped like an anvil which, when aimed with a mouselook view and clicked, throws a physical anvil in the direction of the mouselook cursor.  The anvils thrown are physical objects which respond to gravity and (to a tiny extent—they're anvils!) wind, and exert force on physical objects they hit.  When anvils hit another object or the ground, a star-shaped target marker is placed at the point of impact so the thrower can see where it hit.  If multiple people in the region are throwing anvils, each (up to 10) is assigned their own impact marker colour.  Impact markers last for 30 seconds and are automatically deleted when that time expires.
+
+Included with the Anvil Tosser is a target and optional target stand. When an anvil hits the target, its distance from the bull's eye is computed and used to compute a score from 1 to 10.  A hemispherical target hit marker is placed on the target at the point of impact, with the same colour assigned to the player for impact markers placed for hits outside the target.  The target maintains scores for all players who have hit the target in the last five minutes and displays them in a floating text “leader board” above the target.  In addition, hits on the target, scores, and range are reported back to the anvil tosser, and displayed on floating text above it.  Target hit markers are automatically deleted after 30 seconds.
+
+IMPORTANT: LAND IMPACT AND PERMISSIONS
+
+In order to use the anvil thrower and target, you must have access to land (either your own land, land owned by somebody who allows you to create objects there [perhaps temporarily], or a public sandbox which allows object creation and scripts).  The process of throwing anvils, placing impact markers, and placing hit markers on the target all create new objects, which require permission (for the person wearing the thrower for anvils and impact markers, and for the owner of the target for target hit markers).  Anvils thrown, impact markers, and target hit markers each have a land impact of 1, but all are temporary objects which are deleted on impact or after a timed delay, so they do not permanently count against the land capacity of the property where they are created.  The target has a land impact of 1 and the optional stand (which is purely decorative) has a land impact of 5.  Anvils are automatically deleted if they go “off-world” or fail to hit anything within 15 seconds.
+
+Details
+
+The target may be used with any projectile launcher, but user-specific colours for hit markers and reporting scores back to the tossers works only for co-operating launchers such as the Anvil Tosser.  All target hits by other projectiles are marked with orange hit markers.  The target will, however, maintain separate scores for each thrower.
+
+Because the anvils are physical objects, they exert force on other physical objects with which they collide.  You can, for example, create a physical sphere to serve as a ball, then throw anvils at it to make it move as you wish.  A challenging game for either two individuals or teams is “anvil polo”, where the players fly and compete to get the ball across the opponent's goal line by throwing anvils at it.
+
+Development Kit
+
+The Fourmilab Anvil Tosser and Target are delivered including a development kit containing all of the object components, mesh models, textures, scripts, and documents used in the objects.  All items including scripts, have “full permissions” (copy, modify, and transfer), so that you can use them as the basis for your own development projects and/or share them with other users in Second Life.  A generic anvil mesh object without any script is included in case that's what you need for a build.
+
+Source code for this project is maintained on and available from the GitHub repository:
+    https://github.com/Fourmilab/anvil_tosser
+
+License
+----------
+
+This product (software, documents, images, and original models) is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+    http://creativecommons.org/licenses/by-sa/4.0/
+    https://creativecommons.org/licenses/by-sa/4.0/legalcode
+You are free to copy and redistribute this material in any medium or format, and to remix, transform, and build upon the material for any purpose, including commercially.  You must give credit, provide a link to the license, and indicate if changes were made.  If you remix, transform, or build upon this material, you must distribute your contributions under the same license as the original.

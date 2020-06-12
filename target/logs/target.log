@@ -1,0 +1,215 @@
+
+                       Fourmilab Target
+                       Development Log
+
+2019 October 22
+
+Made the target double-sided, thinner (0.15 m), and with a
+visible grey edge.
+
+Removed the explode on touch we'd added for debugging. It's easy
+enough to test with an object thrower and disquieting to the
+unwary.
+
+The random explosions we've been experiencing when entering the
+region, teleporting in, starting the viewer, etc., appear to be
+due to the particle system not being canceled after having been
+used for a hit.  I established that our splodey() function is
+never being called (nor is the explosion sound being played), so
+it's clearly a particle system phenomenon.  I added an explicit
+clear of the particle system in state_entry() to avoid surprises
+when the script is reset, etc., and set a one second timer in
+splodey() which, when it expires, cancels the particle system.
+This seems to have fixed the random explosions.
+
+Made a wooden tripod stand for the target called, imaginatively,
+"Target stand".  The legs are very long: 8 metres, which allows
+positioning the target reasonably high above the terrain (with
+the legs poking down into it, unnoticed) and tilted back as you
+wish without need to extend the legs.  The entire stand is
+linked as one object, with the left leg the root prim.  This is
+built entirely of cylinder prims and has land impact of 5.  The
+stock library "Old wood" texture is used.
+
+2019 October 23
+
+Added logic to look up the key of the owner of an impacting
+projectile to obtain the user name.  This makes an asynchronous
+query to llRequestAgentData(), which will return the user name
+via the dataserver() event.
+
+Added a new function, missDistance(), which projects the
+incoming velocity vector of a projectile that collided with the
+target and finds the intersection with the plane of the target.
+This provides much more precise distances from the centre of the
+target than what you get from llDetectedPos(), which is often
+substantially offset from the local Z axis of the target.
+
+2019 October 25
+
+When an object impacts the target, we check whether its name
+contains the code ", CMM=cmm", where cmm is a numeric value
+which specifies the colour c and time to live mm (seconds) of
+the impact marker to be placed on the target.  If so, we pass
+this on as start_param when we rez the "Target marker" and use
+it to set colour and lifetime.  If the impactor has no CMM=
+specification in its name, pass on 1000, which turns into 830 in
+the marker, for an orange indicator that lasts 30 seconds.
+
+If the incoming projectile has a very flat trajectory with
+respect to the plane of the target, due to the wonky imprecision
+of Second Life collision detection, it is possible the computed
+intersection point will be distant from the target.  This just
+confuses people, so we put in the following hack: if the
+distance from the target centre to the computed intersection
+point is greater than the target radius, replace it with a new
+computed impact point at the target radius in the direction of
+the vector from the target centre to the original computed
+intersection point.
+
+Added scoring based on miss distance.  The target is divided
+into ten rings, with the innermost 10 and the outermost 1. In
+the process, I discovered the scaling of the bullseye face was a
+bit off, which lost a bit of the 1-2 ring.  I reset the scaling
+to 0.94, which seems just right.
+
+2019 October 29
+
+Removed the debug code which showed the leader board when the
+target was touched.
+
+Added code to clear the floating text when the script is
+restarted in the state_entry() event.
+
+Added code in reportHit() which, for each hit, sends a message
+to the owner of the projectile which hit on channel hitChannel
+(-982449712), which reports, in JSON array format, the total
+number of hits so far, the score for the most recent hit, and
+the total score for all hits.
+
+In addition, reportHit() updates the floating text for the
+target to show the leader board after each hit.
+
+Added logic to showHitList() to sort the leader board in
+descending order of score.  This is a hideous bubble sort but,
+hey, how many people are going to be on the list, anyway?
+
+Added a timeout to clear entries from the leader board after
+hitListTimeout seconds since the last hit.  The timer() fires
+every timerTick and scans the leader board, checking the time of
+last activity against the current time.  If the item has
+expired, it is removed from the hitList and the leader board is
+updated.  "Borrowing" the timer to stop the particle effect
+after a collision does not interfere with this, as timeouts are
+based upon absolute llGetUnixTime() timestamps.  We simply set
+the timer to one second when we set exploding, and when that
+timer fires, clear exploding, stop the particle effect, and
+reset the timer to timerTick.
+
+Added a command processor, initially on commandChannel 9099.
+Commands are divided into two classes: the first may be used by
+users who have scores in the hitList, while the second may be
+used only by the owner of the target.
+
+Added a dialogue, popped up by touching the target, which allows
+a user who has hit the target to clear their hits, any user to
+display scores, and the owner of the target to clear all scores
+and display status.  The menu is simply another way to specify
+commands on commandChannel--the commands are identical.
+
+2019 October 30
+
+Added the ability to turn the flash and bang on and off with:
+    set bang on/off
+    set flash on/off
+and buttons in the dialogue for the owner to control these
+modes.  Due to the silly "what you see is what it sends"
+behavior of dialogues, I added a translator at the top of
+processCommand to convert what the menu sends to proper chat
+commands.
+
+2019 October 31
+
+Added support for computation and reporting of the range from
+which impacting objects were thrown.  If the object's name
+includes, at the end, the substring:
+    ", P=<x,y,z>"
+the vector is taken as specifying, in region co-ordinates, the
+location from which the object was thrown.  The range, defined
+as the integer nearest the distance in metres between the centre
+of the target and the throw location, will be reported on the
+hitChannel for the impact.  If the range is unknown, because the
+impactor did not report its origin, a range of -1 will be
+reported.
+
+Added the ability to turn the floating text legend showing the
+scores on and off.  This can be done either with the "set legend
+on/off" chat command or a button in the dialogue. The status
+command shows the legend setting.
+
+2019 December 26
+
+Cleaned up code in both the target.lsl and targetmarker.lsl
+scripts, deleted some ancient commented-out diagnostic code, and
+added a message to the owner on state_entry to indicate the chat
+channel on which the target is listening.
+
+2020 January 8
+
+If the target's position was edited, placement of target markers
+and computation of miss distance and score would be incorrect
+until the script was reset.  This was because targetPos was
+saved only in state_entry(), which does not get run when a user
+edits the object and moves it.  I added a call to update
+targetPos in collision_start(), so the current location is
+always used.
+
+Similarly, if the user scaled the target, scoring would be
+wrong.  I added code to reset targetRadius in collision_start()
+to avoid such embarrassment.
+
+Hits by unknown projectiles, for which we default to a CMM=
+value of 1000, are marked by the target market as orange, but
+were shown in the hit list as black.  Fixed to display as
+orange: orange is the new black.
+
+2020 January 25
+
+Rewrote the parsing of the P= and CMM= substrings in the
+collision handler to be robust and handle the substrings
+anywhere in the object name, as long as the specification is
+followed by a comma and space.
+
+2020 January 26
+
+Added a ClearFor command which allows a projectile tosser to
+request clearing the score for its owner.  The owner key is
+passed as the command argument.  Note that this allows a clever
+miscreant to clear the score for another user whose key is
+known, but we're hardly talking about Olympic-scale levels of
+security here.
+
+2020 March 22
+
+Back-ported the Target script from the target under development for the
+Rocket.  This includes the new mechanism for reporting hits via
+llRegionSay() instead of llRegionSayTo(), which is required to inform
+the rocket of hits.  We previously used llRegionSayTo() to target the
+avatar wearing the Anvil Tosser, which received the message as an
+attachment of the avatar, but of course that doesn't work with a
+vehicle on which the avatar is seated.  This requires a change in the
+Anvil tosser to accommodate the new signalling.
+
+The updated Target script also has improved Status reporting including
+free script memory and the ability to abbreviate commands and arguments
+to two characters as we do in contemporary scripted projects.
+
+2020 June 1
+
+Audited differences in the target for the Rocket and that for the Anvil
+Tosser and made all conform.  The chat channel for commands is now
+1308, one greater than the channel for the Rocket's target.  Note that
+the Anvil Tosser target uses a different channel to report hits than
+that for the Rocket.  Either target will record hits from both
+launchers, but only report them back to the one for which it is
+configured.
