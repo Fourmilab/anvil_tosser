@@ -56,6 +56,10 @@
     integer T_channel;                          // Target's command channel
     key T_key = NULL_KEY;                       // Target key
 
+/* IF TIMEREZ */
+    string rezStart;                            // Time we rezzed the projectile
+/* END TIMEREZ */
+
     /*  initTosser  --  Initialise the tosser.
                         Due to all the wondrous ways this script
                         can be initialised, which include:
@@ -177,6 +181,9 @@
 
             //  Create projectile
 
+/* IF TIMEREZ */
+            rezStart = llGetTimestamp();
+/* END TIMEREZ */
             llRezObject(projectileName, pos, ZERO_VECTOR, rot, CMM);
             llTriggerSound(Launch_sound, 1.0);  //  Start the sound of the projectile being shot
 
@@ -432,6 +439,18 @@
                         recordHit(T_nhits, T_score, T_nscore, T_range);  // Record the hit for the user
                     }
                 }
+/* IF TIMEREZ */
+                  else if (ccmd == "REZ") {
+                    string rezComplete = llList2String(msg, 1);
+                    float secStart = (float) llGetSubString(rezStart, 17, -2);
+                    float secEnd = (float) llGetSubString(rezComplete, 17, -2);
+                    if (secEnd < secStart) {
+                        secEnd += 60;           //  Crossed minute boundary
+                    }
+                    llOwnerSay("Projectile creation time: " +
+                        (string) (secEnd - secStart) + " seconds.");
+                }
+/* END TIMEREZ */
             }
         }
 

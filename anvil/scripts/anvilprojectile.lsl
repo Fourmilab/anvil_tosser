@@ -63,6 +63,9 @@
 /* IF TRACE
     integer trace = FALSE;                  // Trace collision events ?
 /* END TRACE */
+/* IF TIMEREZ */
+    integer hitChannel = -982449712;            // Channel where target announces hits
+/* END TIMEREZ */
 
     //  Create particle system for impact effect
 
@@ -282,7 +285,7 @@
                             key hitk = llList2Key(hits, i);
                             vector hp = llList2Vector(hits, i + 1);
                             float hitd = llVecDist(pos, hp);
-/* IF TRACE */
+/* IF TRACE
                             if (1) {
                                 string me = "";
                                 if (hitk == myself) {
@@ -303,7 +306,7 @@
                         if (rayhit >= 0) {
                             //  Another magic number to offset so star sits on surface
                             pos = llList2Vector(hits, rayhit + 1) + <0, 0, 0.17328>;
-/* IF TRACE */
+/* IF TRACE
                             if (1) {
                                 llOwnerSay("Floor is " + (string) ((rayhit / 2) + 1) +
                                     " at " + (string) llList2Vector(hits, rayhit + 1));
@@ -344,6 +347,15 @@
     default {
 
         on_rez(integer CMM) {
+/* IF TIMEREZ */
+            if (hitChannel != 0) {
+                //  Report time script received control to rezzer
+                llRegionSayTo(llList2Key(llGetObjectDetails(llGetKey(),
+                                         [ OBJECT_REZZER_KEY ]), 0),
+                    hitChannel,
+                    llList2Json(JSON_ARRAY, [ "REZ", llGetTimestamp() ]));
+            }
+/* END TIMEREZ */
             myself = llGetKey();
             owner = llGetOwner();
 
