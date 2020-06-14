@@ -561,9 +561,9 @@ seems to be behaving as intended.
 
 2020 June 12
 
-Performed an audit of the scripts in the development objects on 
-Fourmilab Island, the objects in the Marketplace listing, and the 
-source code in the Git repository to verify that they are identical. 
+Performed an audit of the scripts in the development objects on
+Fourmilab Island, the objects in the Marketplace listing, and the
+source code in the Git repository to verify that they are identical.
 The scripts are cited below by their path names in the repository.
     anvil/scripts/notrace/anviltosser.lsl
     anvil/scripts/notrace/notrace/anvilprojectile.lsl
@@ -571,33 +571,33 @@ The scripts are cited below by their path names in the repository.
     target/scripts/target.lsl
     target/scripts/targetmarker.lsl
 
-Audited the notecard documents, verifying that the copies in the Git 
-repository, those included within objects, and those in the Marketplace 
+Audited the notecard documents, verifying that the copies in the Git
+repository, those included within objects, and those in the Marketplace
 listing are identical,
     notecards/anvil_tosser_help.txt
     notecards/target_help.txt
-Discovered the copy of the target help file within the target was out 
-of date and remedied the problem.  Updated the Target and Target and 
+Discovered the copy of the target help file within the target was out
+of date and remedied the problem.  Updated the Target and Target and
 Stand in the Marketplace to the corrected versions.
 
-Verified the following logs considered complete are identical in the 
+Verified the following logs considered complete are identical in the
 Inventory development folder, Marketplace, and Git repository.
     anvil/logs/anvil.log
     target/logs/target.log
     impact_marker/logs/impact_marker.log
-I will defer the anvil/logs/anviltosser.log (this document) until we're 
+I will defer the anvil/logs/anviltosser.log (this document) until we're
 ready to ship.
 
-If a user wearing the tosser boarded a vehicle or added an attachment 
-which took the mouselook control and subsequently released it, we would 
-lose the control, even though llGetPermissions() reported we still have 
-PERMISSION_TAKE_CONTROLS.  Previously, the only way to restore the 
-control was to detach and re-attach the tosser.  I added code to the 
-touch() event to re-take the mouselook control and, just in case, also 
-re-establish the hold_R_handgun animation.  Touching the anvil also, of 
-course, clears the scores, but so would detaching and re-attaching it 
-anyway.  I tried to see if I could otherwise detect losing the control, 
-but couldn't find a way.  Sitting on a vehicle and/or leaving it 
+If a user wearing the tosser boarded a vehicle or added an attachment
+which took the mouselook control and subsequently released it, we would
+lose the control, even though llGetPermissions() reported we still have
+PERMISSION_TAKE_CONTROLS.  Previously, the only way to restore the
+control was to detach and re-attach the tosser.  I added code to the
+touch() event to re-take the mouselook control and, just in case, also
+re-establish the hold_R_handgun animation.  Touching the anvil also, of
+course, clears the scores, but so would detaching and re-attaching it
+anyway.  I tried to see if I could otherwise detect losing the control,
+but couldn't find a way.  Sitting on a vehicle and/or leaving it
 generates any changed() event we can see.
 
 Pushed the production directory to the repository with:
@@ -606,5 +606,90 @@ Pushed the production directory to the repository with:
 
 Confirmed that my local "git sync" command works with the remote
 repository.
+
+Made a 1.0 release candidate in the Marketplace with all of the
+current components except this log.  Did a test deliver and tested it
+in a public sandbox.  Everything looks all right.
+
+2020 June 13
+
+After observing widely disparate but seemingly consistent time delays
+between the time on_rez() is called to instantiate an anvil (after
+which it appears in world almost instantaneously) and time its script
+receives control in different regions, I added code to Anvil Tosser and
+Anvil Projectile to investigate the phenomenon.  The code is
+conditional on TIMEREZ, and can be configured or on off with
+lslconf.pl.  If enabled, before calling llRezObject() Anvil Tosser
+saves the current timestamp (which is silly way to represent time, but
+given Second Life's limitation on integer and float precision, it's the
+only way they could achieve millisecond resolution).  When the Anvil
+Projectile script receives control, it sends a message back to its
+parent object on hitChannel with a message type of "REZ" and the
+timestamp when it began to run.  When AnvilTosser receives this
+message, it computes the rez to script start delay (making the
+assumption the entire thing took less than one minute) and displays it
+to the owner in chat.
+
+A Perl program, in tools/timerez.pl, reads a series of these reports
+and prints the mean time of the measurements, along with the variance
+and standard deviation, using the Perl Statistics::Descriptive package.
+Here are measurements for various regions, in seconds, all based upon
+ten tosses.  The variance in all of these measurements was negligible.
+    Foley                   0.0698  (Foley Beach & Boat Slip)
+    Rausch                  0.0721  (Public combat sandbox)
+    Fernandes               0.0730  (Bellisseria rez zone)
+    Fourmilab               0.0748  (Fourmilab Island)
+    Lapara                  0.0796  (Laprara Airport, Heterocera)
+    Bruissac                0.0808  (GTFO! World HQ)
+    Magnum Sandbox A        0.0814  (Premium general sandbox & 3 adjacent)
+    Meighen                 0.0849  (Riff Airport)
+    Backhill                0.0891  (Bellisseria Fourmilab houseboat)
+    Orville                 2.0508  (Orville Airport and Rez zone)
+    Sandbox Bricker         2.0540  (Premium adult sandbox & 3 adjacent)
+    Mauve                   2.0535  (Public sandbox)
+    Vallone                 2.0673  (Animats Cafe and Vehicle R&D)
+    Woodbine                2.1034  (USS Reprisal rez zone)
+I tried several locations on Fourmilab Island, and the times were about
+the same, supporting the theory that the difference is
+region-dependent.
+
+I can draw no obvious conclusions from this.  We clearly have a
+strongly bimodal distribution: the time between llRezObject() and
+on_rez() is either less than a tenth of a second or a tad longer than
+two seconds. Both Fourmilab Island, which is largely unpopulated and
+has few scripts running, while Backhill, which has a large number of
+prims, presumably many of which are running scripts, are fast, while
+Sandbox Bricker, which is essentially empty, is slow.  Riff Airport is
+fast, while Orville airport is slow.  It isn't just sandboxes, because
+Magnum Sandbox and the three adjacent sandboxes are fast.  This is a
+complete mystery to me.
+
+2020 June 14
+
+The closer I look at this, the weirder it gets.  There are 11 adjacent
+sims, including Orville, which make a fat-topped "T", all of which are
+explicitly sandboxes or allow rezzing objects.  All of these are "slow"
+(around 2 second rez to script run time) with the exception of Limia
+and Sandbox Exemplar, both of which are below 100 milliseconds.  When I
+tested Sandbox Verenda, which is next to Exemplar, it was absolutely
+empty: no avatars and nothing built within it, and it was consistently
+over 2 seconds.  Exemplar had 4 avatars including me, and was
+consistently fast.
+
+This doesn't behave like a timeout in that it is, from my testing, 100%
+consistent: a given sim will always come in around 2 seconds or 0.07
+seconds with little variance, and there's nothing I can see from
+World/Region or World/Parcel that seems to distinguish them.  All of
+these sims contiguous with Orville are running the same version of the
+simulator.  It also appears to be completely consistent over time:
+re-testing 12 or 24 hours later gives identical results, although I
+haven't been at this long enough to see if a restart of the sim might
+change things.  Another example of (diagonally) adjacent sims with
+no apparent difference in content or occupation yet different rez
+performance are Langdale, which is slow, and Coniston, fast.
+
+All of the testing in various regions and with multiple avatars has
+revealed no further problems, so it's time to ship it.  Updated the
+log in the Marketplace release to include this document as of today.
 
 Released version 1.0.
